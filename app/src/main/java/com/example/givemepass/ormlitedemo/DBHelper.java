@@ -9,17 +9,26 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by rick.wu on 2016/12/13.
  */
 
-public class AccountOpenDatabaseHelper extends OrmLiteSqliteOpenHelper {
+public class DBHelper extends OrmLiteSqliteOpenHelper {
     private static final String databaseName = "user";
     private static final int databaseVersion = 1;
     private Dao<User, Long> accountDao;
-    public AccountOpenDatabaseHelper(Context context) {
+    public DBHelper(Context context) {
         super(context, databaseName, null, databaseVersion);
+        if(accountDao == null){
+            try {
+                accountDao = getDao(User.class);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -45,14 +54,37 @@ public class AccountOpenDatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
     }
 
-    public Dao<User, Long> getAccountDao(){
-        if(accountDao == null){
-            try {
-                accountDao = getDao(User.class);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+    public List<User> queryAllData(){
+        List<User> users = new ArrayList<>();
+        try {
+            users = accountDao.queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return accountDao;
+        return users;
+    }
+
+    public void createData(User user){
+        try {
+            accountDao.create(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void editData(User user){
+        try {
+            accountDao.update(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void delData(User user){
+        try {
+            accountDao.delete(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

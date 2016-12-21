@@ -1,10 +1,15 @@
 package com.example.givemepass.ormlitedemo;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +20,14 @@ import java.util.List;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private List<User> mData;
+    private Context mContext;
+    private final String[] itemList = {"編輯", "刪除"};
+    private DBHelper mDbHelper;
+    public MyAdapter(Context mContext, DBHelper dbHelper) {
+        this.mContext = mContext;
+        mData = new ArrayList<>();
+        mDbHelper = dbHelper;
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView mTextView;
@@ -24,15 +37,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    public MyAdapter() {
-        mData = new ArrayList<>();
-    }
-
     public void setData(List<User> data){
-        mData.clear();
-        if(data != null) {
-            mData.addAll(data);
-        }
+        mData = data;
     }
 
     @Override
@@ -44,9 +50,55 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         holder.mTextView.setText(mData.get(position).getName());
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
 
+                new AlertDialog.Builder(mContext)
+                .setItems(itemList, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final User user = mData.get(position);
+                        switch(which){
+                            case 0:
+                                final View item = LayoutInflater.from(mContext).inflate(R.layout.item_layout, null);
+                                new AlertDialog.Builder(mContext)
+                                    .setTitle("請輸入你的名字")
+                                    .setView(item)
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            EditText editText = (EditText) item.findViewById(R.id.edit_text);
+                                            String name = editText.getText().toString();
+                                            if(name == null || name.equals("")){
+                                                Toast.makeText(mContext, "請輸入文字...", Toast.LENGTH_SHORT).show();
+                                                return;
+                                            }
+                                            user.setName(name);
+                                            mDbHelper.editData(user);
+                                            mData.set(position, user);
+                                            Toast.makeText(mContext, "修改成功!", Toast.LENGTH_SHORT).show();
+                                            notifyItemChanged(position);
+                                        }
+                                    })
+                                    .show();
+
+                                break;
+                            case 1:
+                                mDbHelper.delData(user);
+                                mData.remove(position);
+                                notifyItemChanged(position);
+                                break;
+                        }
+
+                    }
+                })
+                .show();
+                return true;
+            }
+        });
     }
 
     @Override

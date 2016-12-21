@@ -8,15 +8,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import com.j256.ormlite.dao.Dao;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private AccountOpenDatabaseHelper mAccountOpenDatabaseHelper;
+    private DBHelper mDBHelper;
     private Dao<User, Long> dao;
     private Button addData;
     private EditText inputData;
@@ -32,21 +30,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        mAccountOpenDatabaseHelper = new AccountOpenDatabaseHelper(MainActivity.this);
-        mAccountOpenDatabaseHelper.createTable();
-        dao = mAccountOpenDatabaseHelper.getAccountDao();
+        mDBHelper = new DBHelper(MainActivity.this);
+        mDBHelper.createTable();
         usersData = new ArrayList<>();
-        usersData.addAll(queryDb());
-    }
-
-    private List<User> queryDb(){
-        List<User> users = new ArrayList<>();
-        try {
-            users = dao.queryForAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
+        usersData.addAll(mDBHelper.queryAllData());
     }
 
     private void initView() {
@@ -62,21 +49,20 @@ public class MainActivity extends AppCompatActivity {
                 }
                 User user = new User();
                 user.setName(data);
-                try {
-                    dao.create(user);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                mDBHelper.createData(user);
                 usersData.add(user);
                 adapter.setData(usersData);
                 adapter.notifyDataSetChanged();
+                inputData.setText("");
             }
         });
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new MyAdapter();
+        adapter = new MyAdapter(MainActivity.this, mDBHelper);
+        adapter.setData(usersData);
         recyclerView.setAdapter(adapter);
     }
+
 }
