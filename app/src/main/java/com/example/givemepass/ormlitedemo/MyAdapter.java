@@ -64,13 +64,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                         switch(which){
                             case 0:
                                 final View item = LayoutInflater.from(mContext).inflate(R.layout.item_layout, null);
+                                final EditText editText = (EditText) item.findViewById(R.id.edit_text);
+                                editText.setText(user.getName());
                                 new AlertDialog.Builder(mContext)
-                                    .setTitle("請輸入你的名字")
+                                    .setTitle("編輯資料")
                                     .setView(item)
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            EditText editText = (EditText) item.findViewById(R.id.edit_text);
                                             String name = editText.getText().toString();
                                             if(name == null || name.equals("")){
                                                 Toast.makeText(mContext, "請輸入文字...", Toast.LENGTH_SHORT).show();
